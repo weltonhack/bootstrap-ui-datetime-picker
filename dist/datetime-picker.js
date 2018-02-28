@@ -3,8 +3,6 @@
 // Released: 2018-02-28 
 angular.module('ui.bootstrap.datetimepicker', ['ui.bootstrap.dateparser', 'ui.bootstrap.position'])
 
-        .value('uiDateTimePickerTemplatePath', 'template/')
-
         .constant('uiDatetimePickerConfig', {
             dateFormat: 'yyyy-MM-dd HH:mm',
             defaultTime: '00:00:00',
@@ -106,7 +104,7 @@ angular.module('ui.bootstrap.datetimepicker', ['ui.bootstrap.dateparser', 'ui.bo
                         isHtml5DateInput = true;
                     } else {
                         dateFormat = $attrs.datetimePicker || uiDatetimePickerConfig.dateFormat;
-                        $attrs.$observe('datetimePicker', function (value) {
+                        $attrs.$observe('uibDatetimepickerPopup', function (value) {
                             var newDateFormat = value || uiDatetimePickerConfig.dateFormat;
 
                             if (newDateFormat !== dateFormat) {
@@ -259,6 +257,8 @@ angular.module('ui.bootstrap.datetimepicker', ['ui.bootstrap.dateparser', 'ui.bo
                         $scope.date = parseDateString(ngModel.$viewValue);
                     });
 
+
+                    $element.bind('click', inputClickBind);
                     $element.bind('keydown', inputKeydownBind);
 
                     $popup = $compile(popupEl)($scope);
@@ -562,6 +562,7 @@ angular.module('ui.bootstrap.datetimepicker', ['ui.bootstrap.dateparser', 'ui.bo
                         a();
                     });
                     $popup.remove();
+                    $element.unbind('click', inputClickBind);
                     $element.unbind('keydown', inputKeydownBind);
                     $document.unbind('click', documentClickBind);
                 });
@@ -599,6 +600,16 @@ angular.module('ui.bootstrap.datetimepicker', ['ui.bootstrap.dateparser', 'ui.bo
                     if ($scope.isOpen && !(dpContainsTarget || popupContainsTarget)) {
                         $scope.$apply(function () {
                             $scope.close(false);
+                        });
+                    }
+                }
+
+                function inputClickBind(evt) {
+                    if (!$scope.isOpen && $scope.clickOpen && !$scope.disabled) {
+                        evt.preventDefault();
+                        evt.stopPropagation();
+                        $scope.$apply(function () {
+                            $scope.isOpen = true;
                         });
                     }
                 }
@@ -700,13 +711,14 @@ angular.module('ui.bootstrap.datetimepicker', ['ui.bootstrap.dateparser', 'ui.bo
                 }
 
             }])
-        .directive('datetimePicker', function () {
+        .directive('uibDatetimepickerPopup', function () {
             return {
                 restrict: 'A',
-                require: ['ngModel', 'datetimePicker'],
+                require: ['ngModel', 'uibDatetimepickerPopup'],
                 controller: 'DateTimePickerController',
                 scope: {
                     isOpen: '=?',
+                    clickOpen: '=?',
                     datepickerOptions: '=?',
                     timepickerOptions: '=?',
                     enableDate: '=?',
@@ -723,32 +735,32 @@ angular.module('ui.bootstrap.datetimepicker', ['ui.bootstrap.dateparser', 'ui.bo
                 }
             };
         })
-        .directive('datePickerWrap', function (uiDateTimePickerTemplatePath) {
+        .directive('datePickerWrap', function (uibTemplatePath) {
             return {
                 restrict: 'EA',
                 replace: true,
                 transclude: true,
-                templateUrl: uiDateTimePickerTemplatePath + 'date-picker.html'
+                templateUrl: uibTemplatePath + 'datetimepickerPopup/date-picker.html'
             };
         })
 
-        .directive('timePickerWrap', function (uiDateTimePickerTemplatePath) {
+        .directive('timePickerWrap', function (uibTemplatePath) {
             return {
                 restrict: 'EA',
                 replace: true,
                 transclude: true,
-                templateUrl: uiDateTimePickerTemplatePath + 'time-picker.html'
+                templateUrl: uibTemplatePath + 'datetimepickerPopup/time-picker.html'
             };
         });
 angular.module('ui.bootstrap.datetimepicker').run(['$templateCache', function($templateCache) {
   'use strict';
 
-  $templateCache.put('template/date-picker.html',
+  $templateCache.put('uib/template/datetimepickerPopup/date-picker.html',
     "<ul class=\"dropdown-menu dropdown-menu-left datetime-picker-dropdown\" ng-if=\"isOpen && showPicker == 'date'\" ng-style=dropdownStyle style=left:inherit ng-keydown=keydown($event) ng-click=\"$event.preventDefault(); $event.stopPropagation()\"><li style=\"padding:0 5px 5px 5px\" class=date-picker-menu><div ng-transclude></div></li><li style=padding:5px ng-if=buttonBar.show><span class=\"btn-group pull-left\" style=margin-right:10px ng-if=\"doShow('today') || doShow('clear')\"><button type=button class=btn ng-class=\"getClass('today')\" ng-if=\"doShow('today')\" ng-click=\"select('today', $event)\" ng-disabled=\"isDisabled('today')\">{{ getText('today') }}</button> <button type=button class=btn ng-class=\"getClass('clear')\" ng-if=\"doShow('clear')\" ng-click=\"select('clear', $event)\">{{ getText('clear') }}</button></span> <span class=\"btn-group pull-right\" ng-if=\"(doShow('time') && enableTime) || doShow('close') || doShow('cancel')\"><button type=button class=btn ng-class=\"getClass('time')\" ng-if=\"doShow('time') && enableTime\" ng-click=\"open('time', $event)\">{{ getText('time')}}</button> <button type=button class=btn ng-class=\"getClass('close')\" ng-if=\"doShow('close')\" ng-click=\"close(true, $event)\">{{ getText('close') }}</button> <button type=button class=btn ng-class=\"getClass('cancel')\" ng-if=\"doShow('cancel')\" ng-click=cancel($event)>{{ getText('cancel') }}</button></span> <span class=clearfix></span></li></ul>"
   );
 
 
-  $templateCache.put('template/time-picker.html',
+  $templateCache.put('uib/template/datetimepickerPopup/time-picker.html',
     "<ul class=\"dropdown-menu dropdown-menu-left datetime-picker-dropdown\" ng-if=\"isOpen && showPicker == 'time'\" ng-style=dropdownStyle style=left:inherit ng-keydown=keydown($event) ng-click=\"$event.preventDefault(); $event.stopPropagation()\"><li style=\"padding:0 5px 5px 5px\" class=time-picker-menu><div ng-transclude></div></li><li style=padding:5px ng-if=buttonBar.show><span class=\"btn-group pull-left\" style=margin-right:10px ng-if=\"doShow('now') || doShow('clear')\"><button type=button class=btn ng-class=\"getClass('now')\" ng-if=\"doShow('now')\" ng-click=\"select('now', $event)\" ng-disabled=\"isDisabled('now')\">{{ getText('now') }}</button> <button type=button class=btn ng-class=\"getClass('clear')\" ng-if=\"doShow('clear')\" ng-click=\"select('clear', $event)\">{{ getText('clear') }}</button></span> <span class=\"btn-group pull-right\" ng-if=\"(doShow('date') && enableDate) || doShow('close') || doShow('cancel')\"><button type=button class=btn ng-class=\"getClass('date')\" ng-if=\"doShow('date') && enableDate\" ng-click=\"open('date', $event)\">{{ getText('date')}}</button> <button type=button class=btn ng-class=\"getClass('close')\" ng-if=\"doShow('close')\" ng-click=\"close(true, $event)\">{{ getText('close') }}</button> <button type=button class=btn ng-class=\"getClass('cancel')\" ng-if=\"doShow('cancel')\" ng-click=cancel($event)>{{ getText('cancel') }}</button></span> <span class=clearfix></span></li></ul>"
   );
 

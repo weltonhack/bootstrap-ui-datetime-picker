@@ -8,7 +8,7 @@ module.exports = function (grunt) {
         ngtemplates: {
             app: {
                 src: [
-                    'template/*.html'
+                    'uib/template/datetimepickerPopup/*.html'
                 ],
                 dest: 'dist/datetime-picker.tpls.js',
                 options: {

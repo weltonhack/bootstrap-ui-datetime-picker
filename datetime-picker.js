@@ -1,7 +1,5 @@
 angular.module('ui.bootstrap.datetimepicker', ['ui.bootstrap.dateparser', 'ui.bootstrap.position'])
 
-        .value('uiDateTimePickerTemplatePath', 'template/')
-
         .constant('uiDatetimePickerConfig', {
             dateFormat: 'yyyy-MM-dd HH:mm',
             defaultTime: '00:00:00',
@@ -103,7 +101,7 @@ angular.module('ui.bootstrap.datetimepicker', ['ui.bootstrap.dateparser', 'ui.bo
                         isHtml5DateInput = true;
                     } else {
                         dateFormat = $attrs.datetimePicker || uiDatetimePickerConfig.dateFormat;
-                        $attrs.$observe('datetimePicker', function (value) {
+                        $attrs.$observe('uibDatetimepickerPopup', function (value) {
                             var newDateFormat = value || uiDatetimePickerConfig.dateFormat;
 
                             if (newDateFormat !== dateFormat) {
@@ -256,6 +254,8 @@ angular.module('ui.bootstrap.datetimepicker', ['ui.bootstrap.dateparser', 'ui.bo
                         $scope.date = parseDateString(ngModel.$viewValue);
                     });
 
+
+                    $element.bind('click', inputClickBind);
                     $element.bind('keydown', inputKeydownBind);
 
                     $popup = $compile(popupEl)($scope);
@@ -559,6 +559,7 @@ angular.module('ui.bootstrap.datetimepicker', ['ui.bootstrap.dateparser', 'ui.bo
                         a();
                     });
                     $popup.remove();
+                    $element.unbind('click', inputClickBind);
                     $element.unbind('keydown', inputKeydownBind);
                     $document.unbind('click', documentClickBind);
                 });
@@ -596,6 +597,16 @@ angular.module('ui.bootstrap.datetimepicker', ['ui.bootstrap.dateparser', 'ui.bo
                     if ($scope.isOpen && !(dpContainsTarget || popupContainsTarget)) {
                         $scope.$apply(function () {
                             $scope.close(false);
+                        });
+                    }
+                }
+
+                function inputClickBind(evt) {
+                    if (!$scope.isOpen && $scope.clickOpen && !$scope.disabled) {
+                        evt.preventDefault();
+                        evt.stopPropagation();
+                        $scope.$apply(function () {
+                            $scope.isOpen = true;
                         });
                     }
                 }
@@ -697,13 +708,14 @@ angular.module('ui.bootstrap.datetimepicker', ['ui.bootstrap.dateparser', 'ui.bo
                 }
 
             }])
-        .directive('datetimePicker', function () {
+        .directive('uibDatetimepickerPopup', function () {
             return {
                 restrict: 'A',
-                require: ['ngModel', 'datetimePicker'],
+                require: ['ngModel', 'uibDatetimepickerPopup'],
                 controller: 'DateTimePickerController',
                 scope: {
                     isOpen: '=?',
+                    clickOpen: '=?',
                     datepickerOptions: '=?',
                     timepickerOptions: '=?',
                     enableDate: '=?',
@@ -720,20 +732,20 @@ angular.module('ui.bootstrap.datetimepicker', ['ui.bootstrap.dateparser', 'ui.bo
                 }
             };
         })
-        .directive('datePickerWrap', function (uiDateTimePickerTemplatePath) {
+        .directive('datePickerWrap', function (uibTemplatePath) {
             return {
                 restrict: 'EA',
                 replace: true,
                 transclude: true,
-                templateUrl: uiDateTimePickerTemplatePath + 'date-picker.html'
+                templateUrl: uibTemplatePath + 'datetimepickerPopup/date-picker.html'
             };
         })
 
-        .directive('timePickerWrap', function (uiDateTimePickerTemplatePath) {
+        .directive('timePickerWrap', function (uibTemplatePath) {
             return {
                 restrict: 'EA',
                 replace: true,
                 transclude: true,
-                templateUrl: uiDateTimePickerTemplatePath + 'time-picker.html'
+                templateUrl: uibTemplatePath + 'datetimepickerPopup/time-picker.html'
             };
         });
